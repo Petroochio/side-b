@@ -2,7 +2,7 @@
 "use strict";
 var game = game || {};
 //Battle balls game file
-game.battleBalls = {
+game.side_b = {
     canvas : undefined,
     ctx : undefined,
     arena : undefined,

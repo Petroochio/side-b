@@ -1,7 +1,7 @@
 "use strict";
 var game = game || {};
 
-game.socketHandlers = {
+game.sockets = {
   socket : undefined,
   room: "",
   init : function(app) {
