@@ -4,209 +4,61 @@ var game = game || {};
 
 game.Player = function() {
   var Player = function(id, color, x, y, name) {
-    this.x = x;
-    this.y = y;
-    this.xAcc = 0;
-    this.yAcc = 0;
-    this.velocity = {x: 0, y: 0};
-    this.radius = 20;
-    this.id = id;
+    this.pos = new Vec(x, y);
+    this.velocity = new Vec(0, 0);
+    this.acc = new Vec(0, 0);
+    this.r = 20;
     this.color = color;
-    this.mu = 0.95;
-    this.mass = 10;
-    this.charging = false;
-    this.chargeType = undefined;
-    this.charge = 0;
-    this.maxCharge = 170;
-    this.coolDown = 0;
-    this.stunned = false;
-    this.stunTime = 0;
-    this.dashTime = 0;
-    this.dashSpeed = 1;
-    this.collisions = [];
-    this.KOed = false;
-    this.ready = false;
-    this.name = name;
+    this.dash_time = 0;
+    this.dash_vec = new Vec(0, 0);
   };
 
   var p = Player.prototype;
 
   p.update = function(dt) {
-    this.updateCollisions();
-    this.updateCharge(dt);
-    this.updateStun(dt);
-    this.calculateVelocity(dt);
+    //Some logic to be moved to helper functions
+    if(this.dash_time > 0){
+      this.dash_time -= dt;
+    } else {
+      this.acc.y = .01;
+    }
+
+    if(this.y > .999){
+      this.acc.y = 0;
+      this.pos.y = .99;
+      this.velocity.y = 0; 
+    }
+
+    if(this.x > .999) {
+      this.pos.x = .999;
+      this.velocity.x = 0;
+    } else if(this.x < .001) {
+      this.pos.x = .001;
+      this.velocity.x = 0;
+    }
+    //Fix this
+
     this.move(dt);
   };
 
-  p.beginCharge = function(type) {
-    if(!this.stunned && !this.charging) {
-      this.charging = (this.coolDown <= 0);
-      this.chargeType = type;
-    }
-  };
-
-  p.updateStun = function(dt) {
-    if(this.stunned)
-      this.stunTime--;
-    this.stunned = !(this.stunTime <= 0);
-  };
-
-  p.updateCharge = function(dt) {
-    if(this.charging)
-      this.charge++;
-    else
-      this.coolDown--;
-
-    if(this.charge >= this.maxCharge)
-       this.endCharge();
-  };
-
-  p.endCharge = function() {
-    if(this.charging && this.charge < this.maxCharge) {
-      //2 references to global game obj, fix this
-      if(this.chargeType === "boom")
-        this.doBoom();
-      else if(this.chargeType === "dash")
-        this.doDash();
-
-    } else if(this.charging) {
-      //this.stunned = true;
-      this.stunTime = 200;
-      this.charge = 0;
-      this.charging = false;
-      this.coolDown = 20;
-    }
-  };
-
-  p.doBoom = function() {
-    var boom = new game.Boom(this.id, this, this.charge/(this.maxCharge/4) + .25);
-    game.battleBalls.booms.push(boom);
-    this.charge = 0;
-    this.charging = false;
-    this.coolDown = 20;
-      game.battleBalls.boomSound.play();
-  };
-
-  p.doDash = function() {
-    var aX = this.xAcc * this.charge/this.maxCharge * 200;
-    var aY = this.yAcc * this.charge/this.maxCharge * 200;
-    this.updateAcceleration(aX, aY);
-    this.charge = 0;
-    this.charging = false;
-    this.coolDown = 20;
-      game.battleBalls.dashSound.play();
-  };
-
-  p.updateCollisions = function() {
-    var self = this;
-    this.collisions.forEach(function(ball, index, array){
-      if(!game.physicsUtils.circleCollision(ball.player, self))
-        array.splice(index, 1);
-      // else
-      //   self.applyImpulse(ball.force);
-    });
-  };
-  /** Sets player positon
-   * @param x : new x coord
-   * @param y : new y coord
-   */
-  p.setPosition = function(x,y) {
-    this.x = x;
-    this.y = y;
-  };
-
-  p.colliding = function(player) {
-    var collide = false;
-    this.collisions.forEach(function(ball){
-      if(ball.player === player)
-        collide = true;
-    });
-    return collide;
-  };
-
-  p.calculateVelocity = function(dt) {
-    this.applyFriction();
-    this.velocity.x += this.xAcc;
-    this.velocity.y += this.yAcc;
-  };
-
-  p.updateAcceleration = function(x,y) {
-    this.xAcc = x;
-    this.yAcc = y;
-  };
-
-  p.applyFriction = function() {
-    this.velocity.x = this.velocity.x * this.mu;
-    this.velocity.y = this.velocity.y * this.mu;
-  };
-
   p.move = function(dt) {
-    var scale = 1;
-    scale = (this.charging || this.stunned) ? 0.5 : scale;
-    this.y += this.velocity.y * scale;
-    this.x += this.velocity.x * scale;
+    //Update velocity and position
+    this.velocity.add(x: this.acc.x * dt, y: this.acc.y * dt});
+    this.pos.add({x: this.velocity.x * dt, y: this.velocity.y * dt});
   };
 
-  p.applyImpulse = function(impulse) {
-    this.velocity.x += impulse.x/this.mass;
-    this.velocity.y += impulse.y/this.mass;
+  p.start_dash = function(x, y){
+    this.dash_vec.x = x;
+    this.dash_vec.y = y;
+    this.dash_time = 1;
+    this.acc.x = 0;
+    this.acc.y = 0;
+    this.velocity.x = x;
+    this.velocity.y = y;
   };
 
-  p.render = function(ctx) {
-    ctx.save();
-    ctx.fillStyle = this.color;
-    ctx.strokeStyle = this.stunned ? 'grey' : this.color;
-    ctx.lineWidth = 3;
-    ctx.shadowBlur=10;
-    ctx.shadowColor=this.color;
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-    ctx.closePath();
-    ctx.stroke();
-    ctx.restore();
-    if(this.charging)
-      this.renderCharge(ctx);
-  };
+  p.render = function() {
 
-  p.renderCharge = function(ctx) {
-    if(this.chargeType === "boom")
-      this.drawBoomCharge(ctx);
-    else if(this.chargeType === "dash")
-      this.drawDashCharge(ctx);
-  };
-
-  p.drawBoomCharge = function(ctx) {
-    ctx.save();
-    ctx.fillStyle = this.color;
-    ctx.strokeStyle = this.color;
-    ctx.lineWidth = 3;
-    ctx.shadowBlur=10;
-    ctx.shadowColor=this.color;
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, (this.charge / 20) + 3, 0, Math.PI * 2, false);
-    ctx.closePath();
-    ctx.stroke();
-    ctx.restore();
-  };
-  
-  p.drawDashCharge = function(ctx) {
-    var forward = { x: this.velocity.x, y: this.velocity.y };
-    forward = game.physicsUtils.normalize(forward);
-
-    ctx.save();
-    ctx.fillStyle = this.color;
-    ctx.strokeStyle = this.color;
-    ctx.lineWidth = 3;
-    ctx.shadowBlur=10;
-    ctx.shadowColor=this.color;
-    ctx.beginPath();
-    ctx.moveTo(this.x, this.y);
-    ctx.lineTo(this.x + forward.x * (this.charge/this.maxCharge + 0.1)* 10,
-              this.y + forward.y * (this.charge/this.maxCharge + 0.1)* 10);
-    ctx.closePath();
-    ctx.stroke();
-    ctx.restore();
   };
 
   return Player;

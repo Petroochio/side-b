@@ -1,0 +1,37 @@
+html {
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+  box-sizing: border-box;
+  height: 100%;
+  overflow: hidden; }
+html .hidden {
+  display: none; }
+html .center {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -45%);
+  -webkit-transform: translate(-50%, -45%);
+  -moz-transform: translate(-50%, -45%);
+  -o-transform: translate(-50%, -45%); }
+html .container:after {
+  padding-top: 56.25%;
+  display: block;
+  content: ""; }
+html .container.fullscreen {
+  width: 100%;
+  margin: auto; }
+html .container {
+  width: 85%;
+  margin-top: 2.5%;
+  margin-left: 7.5%;
+  display: inline-block;
+  position: relative;
+  font-family: "proxima-nova-condensed", "Lato", sans-serif; }
+html #canvas-holder {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0; }
