@@ -11,6 +11,7 @@ game.side_b = {
   playerIDs : [],
   players : {},
   state : "GAME",
+  last_update : 0,
   /////////////////////////////////////
   //INITIALIZATION
   /////////////////////////////////////
@@ -27,11 +28,13 @@ game.side_b = {
     // window screen size
     this.resizeCanvas();
     window.addEventListener('resize', this.resizeCanvas.bind(this));
-    
+
     //set up socket
     game.sockets.init(me);//This line of code needs to be called last
   },
-  //main loop
+  /////////////////////////////////////
+  //MAIN LOOP
+  /////////////////////////////////////
   loop : function() {
     requestAnimationFrame(this.loop.bind(this));
     this.update();
@@ -41,15 +44,15 @@ game.side_b = {
   //UPDATE
   /////////////////////////////////////
   //Main game loop
-  update_game : function() {
-    var dt = 0;
+  update_game : function(dt) {
     var me = this;//save reference to this
   },
   //Update loop that handles all states
   update : function() {
+    var dt = this.get_dt();
     switch(this.state) {
       case "GAME" :
-        this.update_game();
+        this.update_game(dt);
         break;
       default :
         break;
@@ -97,6 +100,15 @@ game.side_b = {
   /////////////////////////////////////
   //HELPER
   /////////////////////////////////////
+  //returns the delta time from the last call in seconds
+  get_dt : function() {
+    var now = Date.now();
+    var dt = (now - this.last_update)/1000;
+    if(this.last_update === 0) dt = 0;
+    this.last_update = now;
+
+    return dt;
+  },
   //Resize function for keeping canvas at the right ratio
   resizeCanvas : function() {
     //get reference to canvas holder

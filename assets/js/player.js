@@ -58,7 +58,10 @@ game.Player = function() {
   };
 
   p.render = function() {
-
+    game.draw.circle(this.pos.x,
+                     this.pos.y,
+                     this.r,
+                     'black');
   };
 
   return Player;

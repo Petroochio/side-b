@@ -39,40 +39,6 @@ game.phys = {
     s2.m = -1/slope.m;
     return s2;
   },
-  /** Checks for a collision between two circles
-   * @param c1 : first circle in collision check
-   * @param c2 : second circle in collision check
-   */
-  vecDiff : function(v1, v2) {
-    var diff = {};
-    diff.x = v1.x - v2.x;
-    diff.y = v1.y - v2.y;
-    return diff;
-  },
-  /** Retruns the normal of a vector
-   * @param vec : vector to be normalized
-   */
-  normalize : function(vec) {
-    var norm = {x: vec.x, y: vec.y};//get a copy of the vector
-    var mag = this.getMag(norm);//get magnitude of the vector
-    norm.x = norm.x/mag;
-    norm.y = norm.y/mag;
-    return norm;
-  },
-  /** Returns the dot product of two vectors
-   * @param v1 : first vector
-   * @param v2 : second vector
-   */
-  vecDot : function(v1, v2) {
-    var dot = v1.x * v2.x + v1.y * v2.y;
-    return dot;
-  },
-  /** Returns the magnitude of a vector
-   * @param vec : vector to get magnitude of
-   */
-  getMag : function(vec) {
-    return Math.sqrt(this.sq(vec.x) + this.sq(vec.y));
-  },
   /** Returns an impulse between two circles and scales it accordingly
    * @param c1 : first circle in impulse
    * @param c2 : second circle in impulse
@@ -90,4 +56,4 @@ game.phys = {
     impulse.y = impulse.y * force * scale;
     return impulse;
   }
-}
+};
