@@ -2,7 +2,7 @@
 "use strict";
 var game = game || {};
 
-game.physicsUtils = {
+game.phys = {
   /**Square function, returns the value passed in squared
    * @param val : value to be squared
    */

@@ -24,6 +24,10 @@ game.side_b = {
     me.ctx = me.canvas.getContext('2d');
     me.ctx.lineWidth = 5;
    
+    // window screen size
+    this.resizeCanvas();
+    window.addEventListener('resize', this.resizeCanvas.bind(this));
+    
     //set up socket
     game.sockets.init(me);//This line of code needs to be called last
   },
@@ -58,27 +62,11 @@ game.side_b = {
   /////////////////////////////////////
   //RENDER
   /////////////////////////////////////
-  /** Draws text to the screen
-   * @param ctx : drawing context
-   * @param string : text to be rendered
-   * @param x : x coord of text
-   * @param y : y coord of text
-   * @param size : size of text
-   * @param col : color of text
-  **/
-  text: function(ctx, string, x, y, size, col) {
-    ctx.save();
-    ctx.font = size+'px BAAAAALLLLLLLLLLS';
-    ctx.textAlign = "center";
-    ctx.fillStyle = col;
-    ctx.fillText(string, x, y);
-    ctx.restore();
-  },
   //Render in game screen
   renderGame : function() {
     var me = this;//save reference to this
     me.ctx.save();
-    me.ctx.fillStyle = 'black';
+    me.ctx.fillStyle = 'red';
     me.ctx.fillRect(0,0, me.canvas.width, me.canvas.height);
     me.ctx.restore();
     //loop through and draw each player
@@ -105,5 +93,16 @@ game.side_b = {
       default :
         break;
     }
+  },
+  /////////////////////////////////////
+  //HELPER
+  /////////////////////////////////////
+  //Resize function for keeping canvas at the right ratio
+  resizeCanvas : function() {
+    //get reference to canvas holder
+    var canvasHolder = document.querySelector('#canvas-holder');
+    
+    this.canvas.width = canvasHolder.offsetWidth;
+    this.canvas.height = canvasHolder.offsetHeight;
   }
 }
