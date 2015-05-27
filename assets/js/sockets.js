@@ -15,16 +15,21 @@ game.sockets = {
     var me = this;
 
     //Set up socket events --Ha Andrew don't look at this --You can't stop me
-    socket.on('player join', function(data){
+    socket.on('player_join', function(data){
       if(app.state === "GAME") {
-        var x = app.canvas.width/2, y = app.canvas.height/2;
+        console.log('join');
+        var x = 8/9, y = .5;
         app.players[data.id] = new game.Player(data.id, data.color, x, y, data.name);
         app.playerIDs.push(data.id);
       }
     });
 
     socket.on("sling_fire", function(data){
-      app.players[data.id].start_dash(data.x, data.y);
+      app.players[data.id].start_dash(data.x*.8, data.y*.8);
+    });
+
+    socket.on("sling_aim", function(data){
+      app.players[data.id].aim_dash(data.x*.8, data.y*.8);
     });
 
     socket.on('player leave', function(data){

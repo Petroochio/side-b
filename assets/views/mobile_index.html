@@ -32,6 +32,7 @@
             var controls = document.querySelector("#controls");
             var stick1 = document.querySelector("#stick1");
             var socket = io.connect( window.location.origin, {query: 'user='+name, type: 'mobile'});
+            socket.emit("player_join", {});
             /////////////////////////////////////
             //Joystick function
             //--This could be more generic

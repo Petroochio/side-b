@@ -53,11 +53,11 @@ io.on('connection', function(socket){
   //////////////////
   //ACCOUNT EVENTS
   //////////////////
-  socket.on('player join', function(data){
+  socket.on('player_join', function(data){
     data.id = socket.id;
     data.color = "red";
     // check if total players have maxed
-    io.emit('player join', data);
+    io.emit('player_join', data);
     io.to(socket.id).emit('player id', socket.id);
   });
   

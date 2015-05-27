@@ -35,6 +35,26 @@ game.draw = {
     this.ctx.fill();
     this.ctx.restore();//restore the draw state
   },
+  /** Fills a polygon at the coordinates provided
+   * @param path : path for shape
+   * @param color : color of shape
+   */
+  fill_path : function(path, color){
+    var s = this.canvas.height;//Scale factor
+
+    this.ctx.save();
+    this.ctx.fillStyle = color;
+    this.ctx.beginPath();
+    this.ctx.moveTo(path[0].x*s, path[0].y*s);
+    
+    for(var i = 1; i < path.length; i++) {
+      this.ctx.lineTo(path[i].x*s, path[i].y*s);
+    }
+
+    this.ctx.closePath();
+    this.ctx.fill();
+    this.ctx.restore();
+  },
   /** strokes an arc at the coordinates provided
    * @param x : X coordinate
    * @param y : Y coordinate

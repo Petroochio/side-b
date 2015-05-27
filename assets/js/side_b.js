@@ -24,7 +24,9 @@ game.side_b = {
     me.canvas = document.querySelector('#area');
     me.ctx = me.canvas.getContext('2d');
     me.ctx.lineWidth = 5;
-   
+    
+    game.draw.init(me.canvas, me.ctx);
+
     // window screen size
     this.resizeCanvas();
     window.addEventListener('resize', this.resizeCanvas.bind(this));
@@ -46,10 +48,16 @@ game.side_b = {
   //Main game loop
   update_game : function(dt) {
     var me = this;//save reference to this
+    //loop through and update each player
+    me.playerIDs.forEach(function(id) {
+      var player = me.players[id];
+      player.update(dt);
+    });
   },
   //Update loop that handles all states
   update : function() {
     var dt = this.get_dt();
+
     switch(this.state) {
       case "GAME" :
         this.update_game(dt);

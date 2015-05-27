@@ -50,4 +50,4 @@ var Vec = function() {
   }
 
   return Vec;
-};
+}();
