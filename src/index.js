@@ -64,9 +64,9 @@ io.on('connection', function(socket){
   //////////////////
   //GAME EVENTS
   //////////////////
-  socket.on('sling_fire', function(data){
+  socket.on('charge_fire', function(data){
     data.id = socket.id;
-    io.emit('sling_fire', data);
+    io.emit('charge_fire', data);
   });
 });
 

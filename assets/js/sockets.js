@@ -24,12 +24,16 @@ game.sockets = {
       }
     });
 
-    socket.on("sling_fire", function(data){
-      app.players[data.id].start_dash(data.x*.8, data.y*.8);
+    socket.on("charge_fire", function(data){
+      app.players[data.id].start_dash(data);
     });
 
-    socket.on("sling_aim", function(data){
-      app.players[data.id].aim_dash(data.x*.8, data.y*.8);
+    socket.on("charge_aim", function(data){
+      app.players[data.id].aim_dash(data);
+    });
+
+    socket.on("charge_start", function(data){
+      app.players[data.id].charge_dash(data);
     });
 
     socket.on('player leave', function(data){

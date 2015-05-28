@@ -13,27 +13,29 @@ game.Player = function() {
     this.dash_vec = new Vec(0, 0);
     this.resting = false;
     this.can_dash = true;
+    this.charging = false;
+    this.charge_time = 0;
+    this.max_charge = 2;
   };
-
-  var p = Player.prototype;
+  var p = Player.prototype; //fetch the prototype of player
 
   p.update = function(dt) {
+    if(this.charging && this.charge_time < this.max_charge) 
+      charge_time += dt;
     //Some logic to be moved to helper functions
     if(this.dash_time > 0){
       this.dash_time -= dt;
-      this.acc.y = 0;
     } else if(!this.resting){
       this.acc.y = .5;
     }
-
+    //Containment and stage/platform collision
+    //this is all placeholder
     if(this.pos.y > .95){
-      this.acc.y = 0;
       this.pos.y = .95;
-      this.velocity.scale(0);
-      this.resting = true;
+      this.velocity.y *= -.6;
       this.can_dash = true;
     }
-    
+    /*
     if(this.pos.x > 16/9 -.05) {
       this.pos.x = 16/9 -.05;
       this.velocity.x = 0;
@@ -42,9 +44,8 @@ game.Player = function() {
       this.pos.x = .05;
       this.velocity.x = 0;
       this.can_dash = true;
-    }
+    }*/
     //Fix this
-
     this.move(dt);
   };
 
@@ -54,19 +55,30 @@ game.Player = function() {
     this.pos.add({x: this.velocity.x * dt, y: this.velocity.y * dt});
   };
 
-  p.start_dash = function(x, y){
+  p.start_dash = function(target){
     //Get rid of aim
-    if(!this.can_dash) return;
+    if(!this.charging) return;
     //do dash
-    this.dash_vec.x = -x;
-    this.dash_vec.y = -y;
-    this.dash_time = .1;
-    this.acc.x = 0;
-    this.acc.y = 0;
-    this.velocity.x = -x;
-    this.velocity.y = -y;
+    this.dash_time = 0.5;
+    this.acc.x = -target.x * this.charge_time;
+    this.acc.y = -target.y * this.charge_time;
     this.resting = false;
     this.can_dash = false;
+    this.charging = false;
+  };
+
+  p.aim_dash = function(target) {
+    //update the dash vec for rendering
+  };
+
+  p.charge_dash = function() {
+    if(!this.can_dash) return;
+
+    this.charging = true;
+  };
+
+  p.end_dash = function() {
+
   };
 
   p.render = function() {

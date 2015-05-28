@@ -9,6 +9,8 @@
         <script src="//code.jquery.com/jquery-2.1.3.min.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/draggabilly/1.2.0/draggabilly.pkgd.min.js"></script>
         <script src="assets/lib/lodash.js"></script>
+        <script src="assets/js/mobile.js"></script>
+        <script src="assets/js/vec.js"></script>
         <style>
           #control{
 
@@ -29,54 +31,7 @@
         </style>
         <script> 
           window.onload = function() {  
-            var controls = document.querySelector("#controls");
-            var stick1 = document.querySelector("#stick1");
-            var socket = io.connect( window.location.origin, {query: 'user='+name, type: 'mobile'});
-            socket.emit("player_join", {});
-            /////////////////////////////////////
-            //Joystick function
-            //--This could be more generic
-            /////////////////////////////////////
-            function make_joystick(stick, size) {
-              //Add pad for user to pull
-              stick.innerHTML = "<div class='pad'></div>";
-              //set the whole joystick's size 
-              stick.style.width = size+"px";
-              stick.style.height = size+"px";
-              stick.style.borderRadius = size/2+"px";
-              //get reference to the pad
-              var pad = stick.querySelectorAll(".pad")[0];
-              var pad_x = size/3, pad_y = size/3;
-              //set the pad's styles
-              pad.style.width = size/3+"px";
-              pad.style.height = size/3+"px";
-              pad.style.borderRadius = size/6+"px";
-              pad.style.top = pad_x+"px";
-              pad.style.left = pad_y+"px";
-              //Make it dragable
-              var drag_pad = new Draggabilly(pad, {
-                containment: stick
-              });
-              //snap it to the center of the stick
-              drag_pad.on( 'dragEnd', function( e ) {
-                //get distance from center
-                var dist = {
-                  x: (parseInt(e.target.style.left)- pad_x)/(2/3),
-                  y: (parseInt(e.target.style.top)- pad_y)/(2/3)
-                };
-                //make dist relative to container
-                dist.x /= size/2;
-                dist.y /= size/2;
-                //send the data
-                socket.emit("sling_fire", dist);
-                console.log(dist);
-                //reset pad
-                e.target.style.left = pad_x+"px";
-                e.target.style.top = pad_y+"px";
-              });
-            }
-
-            make_joystick(stick1, 250);
+            mobile.controller.init();
           };
         </script>
     </head>

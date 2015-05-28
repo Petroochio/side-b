@@ -76,21 +76,6 @@ game.draw = {
     this.ctx.closePath();
     this.ctx.restore();//restore the draw state
   },
-  /** Draw function for the particle object
-   *
-   *
-   MIGHT NOT WANT THIS HERE
-   */
-  particle : function(size, x, y, color, alpha) {
-    this.ctx.save();
-    this.ctx.translate(x*this.canvas.height, y*this.canvas.height);
-    this.ctx.rotate(Math.PI/4);
-    this.ctx.fillStyle = color;
-    this.ctx.globalAlpha = alpha;
-    size *= this.canvas.height;
-    this.ctx.fillRect(-size/2, -size/2, size, size);
-    this.ctx.restore();
-  },
   //image draw function
   img : function(image, imgX, imgY, imgW, imgH, x, y, w, h) {
     this.ctx.drawImage(image, imgX, imgY, imgW, imgH, 
