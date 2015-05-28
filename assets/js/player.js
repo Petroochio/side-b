@@ -12,6 +12,7 @@ game.Player = function() {
     this.dash_time = 0;
     this.dash_vec = new Vec(0, 0);
     this.resting = false;
+    this.can_dash = true;
   };
 
   var p = Player.prototype;
@@ -30,14 +31,17 @@ game.Player = function() {
       this.pos.y = .95;
       this.velocity.scale(0);
       this.resting = true;
+      this.can_dash = true;
     }
     
     if(this.pos.x > 16/9 -.05) {
       this.pos.x = 16/9 -.05;
       this.velocity.x = 0;
+      this.can_dash = true;
     } else if(this.pos.x < .05) {
       this.pos.x = .05;
       this.velocity.x = 0;
+      this.can_dash = true;
     }
     //Fix this
 
@@ -52,7 +56,7 @@ game.Player = function() {
 
   p.start_dash = function(x, y){
     //Get rid of aim
-    
+    if(!this.can_dash) return;
     //do dash
     this.dash_vec.x = -x;
     this.dash_vec.y = -y;
@@ -62,6 +66,7 @@ game.Player = function() {
     this.velocity.x = -x;
     this.velocity.y = -y;
     this.resting = false;
+    this.can_dash = false;
   };
 
   p.render = function() {
