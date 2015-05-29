@@ -21,11 +21,13 @@ game.Player = function() {
 
   p.update = function(dt) {
     if(this.charging && this.charge_time < this.max_charge) 
-      charge_time += dt;
+      this.charge_time += dt;
     //Some logic to be moved to helper functions
     if(this.dash_time > 0){
       this.dash_time -= dt;
     } else if(!this.resting){
+//////////////THIS NEEDS TO CHANGE DO SOMETHING WITH END DASH/////////////////
+      this.acc.x = 0;
       this.acc.y = .5;
     }
     //Containment and stage/platform collision
@@ -35,7 +37,7 @@ game.Player = function() {
       this.velocity.y *= -.6;
       this.can_dash = true;
     }
-    /*
+    
     if(this.pos.x > 16/9 -.05) {
       this.pos.x = 16/9 -.05;
       this.velocity.x = 0;
@@ -44,7 +46,8 @@ game.Player = function() {
       this.pos.x = .05;
       this.velocity.x = 0;
       this.can_dash = true;
-    }*/
+
+    }
     //Fix this
     this.move(dt);
   };
@@ -56,15 +59,17 @@ game.Player = function() {
   };
 
   p.start_dash = function(target){
+    console.log(target);
     //Get rid of aim
     if(!this.charging) return;
     //do dash
-    this.dash_time = 0.5;
-    this.acc.x = -target.x * this.charge_time;
-    this.acc.y = -target.y * this.charge_time;
+    this.dash_time = 0.3;
+    this.acc.x = -target.x*2 * this.charge_time;
+    this.acc.y = -target.y*2 * this.charge_time;
     this.resting = false;
     this.can_dash = false;
     this.charging = false;
+    this.charge_time = 0;
   };
 
   p.aim_dash = function(target) {
@@ -73,7 +78,7 @@ game.Player = function() {
 
   p.charge_dash = function() {
     if(!this.can_dash) return;
-
+    console.log('charge')
     this.charging = true;
   };
 

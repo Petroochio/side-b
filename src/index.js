@@ -68,6 +68,11 @@ io.on('connection', function(socket){
     data.id = socket.id;
     io.emit('charge_fire', data);
   });
+
+  socket.on('charge_start', function(data){
+    data.id = socket.id;
+    io.emit('charge_start', data);
+  });
 });
 
 http.listen(port, function(){
