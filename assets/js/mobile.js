@@ -63,7 +63,6 @@ mobile.controller = {
       aim.normalize();
       //send the data
       me.socket.emit("charge_fire", {x:aim.x, y:aim.y});
-      console.log(aim);
       //reset pad
       e.target.style.left = pad_x+"px";
       e.target.style.top = pad_y+"px";

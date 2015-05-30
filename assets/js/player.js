@@ -34,17 +34,20 @@ game.Player = function() {
     //this is all placeholder
     if(this.pos.y > .95){
       this.pos.y = .95;
-      this.velocity.y *= -.6;
+      this.velocity.scale(.6);
+      this.velocity.y *= -1;
       this.can_dash = true;
     }
     
     if(this.pos.x > 16/9 -.05) {
       this.pos.x = 16/9 -.05;
-      this.velocity.x = 0;
+      this.velocity.scale(.6);
+      this.velocity.x *= -1;
       this.can_dash = true;
     } else if(this.pos.x < .05) {
       this.pos.x = .05;
-      this.velocity.x = 0;
+      this.velocity.scale(.6);
+      this.velocity.x *= -1;
       this.can_dash = true;
 
     }
@@ -63,9 +66,9 @@ game.Player = function() {
     //Get rid of aim
     if(!this.charging) return;
     //do dash
-    this.dash_time = 0.3;
-    this.acc.x = -target.x*2 * this.charge_time;
-    this.acc.y = -target.y*2 * this.charge_time;
+    this.dash_time = 0.2;
+    this.acc.x = -target.x*3 * this.charge_time;
+    this.acc.y = -target.y*3 * this.charge_time;
     this.resting = false;
     this.can_dash = false;
     this.charging = false;
