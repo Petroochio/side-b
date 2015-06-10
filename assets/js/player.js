@@ -32,7 +32,7 @@ game.Player = function() {
     }
     //Containment and stage/platform collision
     //this is all placeholder
-    if(this.pos.y > .95){
+    /*if(this.pos.y > .95){
       this.pos.y = .95;
       this.velocity.scale(.6);
       this.velocity.y *= -1;
@@ -50,7 +50,7 @@ game.Player = function() {
       this.velocity.x *= -1;
       this.can_dash = true;
 
-    }
+    }*/
     //Fix this
     this.move(dt);
   };
