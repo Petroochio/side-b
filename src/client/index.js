@@ -2,20 +2,42 @@ import { run } from '@cycle/rxjs-run';
 import { Observable, Scheduler } from 'rxjs';
 import { h, div, makeDOMDriver } from '@cycle/dom';
 
+const fullScreenStyle = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+}
+
+const vw = window.innerWidth;
+const vh = window.innerHeight;
+
+/**
+ * Mutate canvas size to match window size
+ */
+const hackCanvasSize = element => {
+  if (element.width !== vw) {
+    element.width = `${vw}`;
+    element.height = `${vh}`;
+  }
+  return element;
+};
+
 const mapPageCoords = ({ touches }) => ({ x: touches[0].pageX, y: touches[0].pageY });
 
 const main = ({ DOM }) => {
   const canvas = DOM.select('#render');
   const ctx$ = canvas.elements()
-    .map(([canvas]) => canvas ? canvas.getContext('2d') : null);
+    .map(([canvas]) => canvas ? hackCanvasSize(canvas) : null)
+    .map(canvas => canvas ? canvas.getContext('2d') : null);
 
   const frame$ = Observable
     .interval(33, requestAnimationFrame)
     .withLatestFrom(ctx$)
     .subscribe(([__, ctx]) => {
-      // ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      ctx.scale(1, 1);
       ctx.beginPath();
-      ctx.arc(75, 75, 50, 0, 2 * Math.PI);// window.innerWidth/2, window.innerHeight/2, 20, 0, Math.PI * 2);
+      ctx.arc(70, 70, 20, 0, Math.PI * 2);
       ctx.stroke();
       ctx.closePath();
     });
@@ -35,7 +57,7 @@ const main = ({ DOM }) => {
     .startWith(false)
     .map((e) => {
       return div('.everything', [
-        h('canvas#render', { style: { width: '100vw', height: '100vh' }})
+        h('canvas#render', { style: fullScreenStyle })
       ]);
     }
   );
