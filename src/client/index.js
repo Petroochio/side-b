@@ -2,6 +2,9 @@ import { run } from '@cycle/rxjs-run';
 import { Observable, Scheduler } from 'rxjs';
 import { h, div, makeDOMDriver } from '@cycle/dom';
 
+import makeRenderDriver from './drivers/render';
+import makeUpdateDriver from './drivers/state';
+
 const fullScreenStyle = {
   position: 'absolute',
   top: 0,
@@ -22,27 +25,22 @@ const hackCanvasSize = element => {
   return element;
 };
 
-const mapPageCoords = ({ touches }) => ({ x: touches[0].pageX, y: touches[0].pageY });
+const mapPageCoords = ({ touches }) => ({
+  x: touches[0].pageX,
+  y: touches[0].pageY
+});
 
-const main = ({ DOM }) => {
+const main = ({ DOM, state }) => {
   const canvas = DOM.select('#render');
   const ctx$ = canvas.elements()
-    .map(([canvas]) => canvas ? hackCanvasSize(canvas) : null)
-    .map(canvas => canvas ? canvas.getContext('2d') : null);
+  .map(([canvas]) => canvas ? hackCanvasSize(canvas) : null)
+  .map(canvas => canvas ? canvas.getContext('2d') : null);
 
-  const frame$ = Observable
-    .interval(33, requestAnimationFrame)
-    .withLatestFrom(ctx$)
-    .subscribe(([__, ctx]) => {
-      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-      ctx.scale(1, 1);
-      ctx.beginPath();
-      ctx.arc(70, 70, 20, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.closePath();
-    });
+  const frame$ = state.withLatestFrom(ctx$);
+  const tick$ = Observable.interval(33, requestAnimationFrame)
+    .startWith({ players: [{ x: 0}] }); // pass in inital state here
 
-  // CONTROLS
+  // CONTROLS : somehow pipe into game update logic ... need a redux state, do a merge?
   const drawStart$ = canvas.events('touchstart').map(mapPageCoords);
   const drawMove$ = canvas.events('touchmove').map(mapPageCoords);
   const drawEnd$ = canvas.events('touchend');
@@ -55,18 +53,27 @@ const main = ({ DOM }) => {
 
   const s$ = sling$
     .startWith(false)
-    .map((e) => {
-      return div('.everything', [
-        h('canvas#render', { style: fullScreenStyle })
-      ]);
-    }
-  );
+    .map(
+      (e) => {
+        return div('.everything', [
+          h('canvas#render', { style: fullScreenStyle })
+        ]);
+      }
+    );
 
   const sinks = {
     DOM: s$,
+    render: frame$,
+    state: tick$,
   }
 
   return sinks;
 };
 
-window.onload = () => run(main, { DOM: makeDOMDriver('#app_container')});
+const drivers = () => ({
+  DOM: makeDOMDriver('#app_container'),
+  render: makeRenderDriver(),
+  state: makeUpdateDriver(),
+});
+
+window.onload = () => run(main, drivers());
