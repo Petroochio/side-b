@@ -2,7 +2,6 @@
 export default function() {
   return tick$ => tick$.scan(
     (state, t) => {
-      console.log(state);
       return {
         players: state.players.map(({ x }) => ({ x: t })),
       }

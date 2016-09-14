@@ -36,20 +36,19 @@ const main = ({ DOM, state }) => {
   .map(([canvas]) => canvas ? hackCanvasSize(canvas) : null)
   .map(canvas => canvas ? canvas.getContext('2d') : null);
 
-  const frame$ = state.withLatestFrom(ctx$);
-  const tick$ = Observable.interval(33, requestAnimationFrame)
-    .startWith({ players: [{ x: 0}] }); // pass in inital state here
-
   // CONTROLS : somehow pipe into game update logic ... need a redux state, do a merge?
   const drawStart$ = canvas.events('touchstart').map(mapPageCoords);
   const drawMove$ = canvas.events('touchmove').map(mapPageCoords);
   const drawEnd$ = canvas.events('touchend');
-
   const sling$ = Observable.combineLatest(drawStart$, drawMove$);
-
   const release$ = sling$
     .sample(drawEnd$)
     .subscribe((e) => console.log(e));
+
+  // RENDER
+  const frame$ = state.withLatestFrom(ctx$);
+  const tick$ = Observable.interval(33, requestAnimationFrame)
+    .startWith({ players: [{ x: 0}] }); // pass in inital state here
 
   const s$ = sling$
     .startWith(false)
