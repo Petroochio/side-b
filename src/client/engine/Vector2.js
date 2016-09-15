@@ -7,7 +7,7 @@ import R from 'ramda';
  */
 export const Vector2 = function ( x, y ) {
   this.value = [ x, y ];
-}
+};
 
 /**
  * Returns the result of adding a given Vector2 to this one
@@ -15,12 +15,12 @@ export const Vector2 = function ( x, y ) {
  * @return Vector2
  */
 Vector2.prototype.add = function ( vec ) {
+  const [ x1, y1 ] = this.value;
+  const [ x2, y2 ] = vec.value;
+
   return new Vector2(
-    ...R.zipWith(
-      R.add,
-      this.value,
-      vec.value
-    )
+    x1 + x2,
+    y1 + y2
   );
 };
 
@@ -30,12 +30,12 @@ Vector2.prototype.add = function ( vec ) {
  * @return Vector2
  */
 Vector2.prototype.subtract = function ( vec ) {
+  const [ x1, y1 ] = this.value;
+  const [ x2, y2 ] = vec.value;
+
   return new Vector2(
-    ...R.zipWith(
-      R.subtract,
-      this.value,
-      vec.value
-    )
+    x1 - x2,
+    y1 - y2
   );
 };
 
@@ -45,11 +45,11 @@ Vector2.prototype.subtract = function ( vec ) {
  * @return Vector2
  */
 Vector2.prototype.scale = function ( scalar ) {
+  const [ x, y ] = this.value;
+
   return new Vector2(
-    ...R.map(
-      R.multiply( scalar ),
-      this.value
-    )
+    x * scalar,
+    y * scalar
   );
 };
 
@@ -63,6 +63,7 @@ Vector2.prototype.scale = function ( scalar ) {
 export const dotProduct2 = ( a, b ) => {
   const [ ax, ay ] = a.value;
   const [ bx, by ] = b.value;
+
   return ax * bx + ay * by;
 };
 
