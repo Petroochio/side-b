@@ -1,4 +1,4 @@
-//Physics library used for all physics calculations
+// Physics library used for all physics calculations
 "use strict";
 var game = game || {};
 
@@ -18,7 +18,7 @@ game.phys = {
     var distSq = this.sq(c2.x - c1.x) + this.sq(c2.y - c1.y);
     return (radSq >= distSq);
   },
-  /** Returns a slope, and the x and y components of a 
+  /** Returns a slope, and the x and y components of a
    *  line between the two points passed in
    * @param p1 : first point
    * @param p2 : second point
