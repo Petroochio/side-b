@@ -1,7 +1,5 @@
 import R from 'ramda';
 
-import Scalar from './Scalar';
-
 /**
  * Constructor for Vector2 monad
  * @param {number} x
@@ -48,8 +46,8 @@ Vector2.prototype.subtract = function ( vec ) {
  */
 Vector2.prototype.scale = function ( scalar ) {
   return new Vector2(
-    R.map(
-      R.multiply( scalar.value ),
+    ...R.map(
+      R.multiply( scalar ),
       this.value
     )
   );
@@ -65,7 +63,7 @@ Vector2.prototype.scale = function ( scalar ) {
 export const dotProduct2 = ( a, b ) => {
   const [ ax, ay ] = a.value;
   const [ bx, by ] = b.value;
-  return new Scalar( ax * bx + ay * by );
+  return ax * bx + ay * by;
 };
 
 /**
@@ -75,7 +73,7 @@ export const dotProduct2 = ( a, b ) => {
  */
 export const magnitude2 = vec => {
   const [ x, y ] = vec.value;
-  return Scalar( Math.sqrt( x * 2 + y * 2 ) );
+  return Math.sqrt( x * 2 + y * 2 );
 };
 
 
