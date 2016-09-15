@@ -62,7 +62,7 @@ Vector2.prototype.scale = function ( scalar ) {
  * @param {Vector2} b
  * @return Scalar
  */
-export const dotProduct2 = ( a, b ) {
+export const dotProduct2 = ( a, b ) => {
   const [ ax, ay ] = a.value;
   const [ bx, by ] = b.value;
   return new Scalar( ax * bx + ay * by );
@@ -73,7 +73,7 @@ export const dotProduct2 = ( a, b ) {
  * @param {Vector2} vec
  * @return Scalar
  */
-export const magnitude2 = function ( vec ) {
+export const magnitude2 = vec => {
   const [ x, y ] = vec.value;
   return Scalar( Math.sqrt( x * 2 + y * 2 ) );
 };
