@@ -23,6 +23,7 @@ const hackCanvasSize = element => {
     element.width = vw;
     element.height = vh;
   }
+
   return element;
 };
 
@@ -46,10 +47,13 @@ const main = ({ DOM, state }) => {
     .sample(drawEnd$)
     .subscribe(e => console.log( e ));
 
+
   // RENDER
+  const tempInitPlayers = [ makePlayer( 30, 300 ) ];
+  tempInitPlayers[0].velocity = tempInitPlayers[0].velocity.setX( 30 );
   const frame$ = state.withLatestFrom( ctx$ );
   const tick$ = Observable.interval( 33, requestAnimationFrame )
-    .startWith({ players: [ makePlayer( 0, vh ) ] }); // pass in inital state here
+    .startWith({ players: tempInitPlayers }); // pass in inital state here
 
   const s$ = sling$
     .startWith( false )
@@ -58,7 +62,7 @@ const main = ({ DOM, state }) => {
         return div(
           '.everything',
           [
-            h('canvas#render', { style: fullScreenStyle })
+            h('canvas#render')
           ]
         );
       }

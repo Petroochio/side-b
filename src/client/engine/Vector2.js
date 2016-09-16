@@ -9,6 +9,31 @@ export const Vector2 = function ( x, y ) {
   this.value = [ x, y ];
 };
 
+Vector2.prototype.setY = function ( y ) {
+  const [ x, _ ] = this.value;
+  return new Vector2( x, y );
+};
+
+Vector2.prototype.setX = function ( x ) {
+  const [ _, y ] = this.value;
+  return new Vector2( x, y );
+};
+
+Vector2.prototype.map = function ( func ) {
+  const [ x, y ] = this.value.map( func );
+  return new Vector2( x, y );
+};
+
+Vector2.prototype.mapY = function ( func ) {
+  const [ x, y ] = this.value;
+  return new Vector2( x, func( y ) );
+};
+
+Vector2.prototype.mapX = function ( func ) {
+  const [ x, y ] = this.value;
+  return new Vector2( func( x ), y );
+};
+
 /**
  * Returns the result of adding a given Vector2 to this one
  * @param {Vector2} vec
@@ -50,6 +75,24 @@ Vector2.prototype.scale = function ( scalar ) {
   return new Vector2(
     x * scalar,
     y * scalar
+  );
+};
+
+Vector2.prototype.scaleY = function ( scalar ) {
+  const [ x, y ] = this.value;
+
+  return new Vector2(
+    x,
+    y * scalar
+  );
+};
+
+Vector2.prototype.scaleX = function ( scalar ) {
+  const [ x, y ] = this.value;
+
+  return new Vector2(
+    x * scalar,
+    y
   );
 };
 
