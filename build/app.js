@@ -62,9 +62,13 @@
 
 	var _state2 = _interopRequireDefault(_state);
 
-	var _Player = __webpack_require__(469);
+	var _stream = __webpack_require__(470);
 
-	var _Player2 = _interopRequireDefault(_Player);
+	var _stream2 = _interopRequireDefault(_stream);
+
+	var _views = __webpack_require__(472);
+
+	var _views2 = _interopRequireDefault(_views);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -89,68 +93,25 @@
 	  return element;
 	};
 
-	var mapPageCoords = function mapPageCoords(_ref) {
-	  var touches = _ref.touches;
-	  return {
-	    x: touches[0].pageX,
-	    y: touches[0].pageY
-	  };
-	};
+	var main = function main(_ref) {
+	  var DOM = _ref.DOM;
+	  var state = _ref.state;
 
-	var main = function main(_ref2) {
-	  var DOM = _ref2.DOM;
-	  var state = _ref2.state;
+	  var ctx$ = DOM.select('#render').elements().map(function (_ref2) {
+	    var _ref3 = _slicedToArray(_ref2, 1);
 
-	  var canvas = DOM.select('#render');
-	  var ctx$ = canvas.elements().map(function (_ref3) {
-	    var _ref4 = _slicedToArray(_ref3, 1);
-
-	    var can = _ref4[0];
-	    return can ? hackCanvasSize(can) : null;
-	  }).map(function (can) {
-	    return can ? can.getContext('2d') : null;
+	    var c = _ref3[0];
+	    return c ? hackCanvasSize(c) : null;
+	  }).map(function (c) {
+	    return c ? c.getContext('2d') : null;
 	  });
 
-	  // CONTROLS : somehow pipe into game update logic ... need a redux state, do a merge?
-	  var drawStart$ = canvas.events('touchstart').map(mapPageCoords);
-	  var drawMove$ = canvas.events('touchmove').map(mapPageCoords);
-	  var drawEnd$ = canvas.events('touchend');
-	  var sling$ = _rxjs.Observable.combineLatest(drawStart$, drawMove$);
-	  var release$ = sling$.sample(drawEnd$).map(function (_ref5) {
-	    var _ref6 = _slicedToArray(_ref5, 2);
-
-	    var p1 = _ref6[0];
-	    var p2 = _ref6[1];
-	    return {
-	      x: p1.x - p2.x,
-	      y: p2.y - p1.y,
-	      player: 0
-	    };
-	  }).map(function (sling) {
-	    return {
-	      type: 'RELEASE',
-	      payload: sling
-	    };
-	  });
-
-	  // RENDER
-	  var tempInitPlayers = [(0, _Player2.default)(30, 300)];
-	  tempInitPlayers[0].velocity = tempInitPlayers[0].velocity.setX(30);
-	  var frame$ = state.withLatestFrom(ctx$);
-	  var update$ = _rxjs.Observable.interval(33, requestAnimationFrame).map(function () {
-	    return { type: 'UPDATE' };
-	  });
-
-	  var tick$ = update$.merge(release$).startWith({ players: tempInitPlayers }); // pass in inital state here
-
-	  var vdom$ = sling$.startWith(false).map(function (e) {
-	    return (0, _dom.div)('.everything', [(0, _dom.h)('canvas#render')]);
-	  });
+	  var vdom$ = DOM.select('#render').events('click').startWith(false).map(_views2.default);
 
 	  var sinks = {
 	    DOM: vdom$,
-	    render: frame$,
-	    state: tick$
+	    render: state.withLatestFrom(ctx$),
+	    state: (0, _stream2.default)(DOM)
 	  };
 
 	  return sinks;
@@ -26772,7 +26733,11 @@
 
 	  var state = _ref2[0];
 	  var ctx = _ref2[1];
-	  return ctx && state.players.forEach((0, _player2.default)(ctx));
+
+	  if (ctx) {
+	    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+	    state.players.forEach((0, _player2.default)(ctx));
+	  }
 	};
 
 /***/ },
@@ -26789,20 +26754,50 @@
 
 	var _ramda = __webpack_require__(466);
 
-	var renderPlayer = function renderPlayer(ctx, player) {
-	  var _player$position$valu = _slicedToArray(player.position.value, 2);
+	var drawAimVector = function drawAimVector(ctx, _ref) {
+	  var position = _ref.position;
+	  var launch = _ref.launch;
 
-	  var px = _player$position$valu[0];
-	  var py = _player$position$valu[1];
+	  if (launch.mag() != 0) {
+	    var _position$value = _slicedToArray(position.value, 2);
+
+	    var px = _position$value[0];
+	    var py = _position$value[1];
+
+	    var _launch$value = _slicedToArray(launch.value, 2);
+
+	    var aimX = _launch$value[0];
+	    var aimY = _launch$value[1];
+
+	    var inverseY = window.innerHeight - py;
+
+	    ctx.beginPath();
+	    ctx.moveTo(px, inverseY);
+	    ctx.lineTo(px + aimX, inverseY - aimY);
+	    ctx.stroke();
+	    ctx.closePath();
+	  }
+	};
+
+	var drawPlayerSprite = function drawPlayerSprite(ctx, _ref2) {
+	  var position = _ref2.position;
+
+	  var _position$value2 = _slicedToArray(position.value, 2);
+
+	  var px = _position$value2[0];
+	  var py = _position$value2[1];
 
 	  var inverseY = window.innerHeight - py; // invert Y so my math is easy
 
-	  ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-	  ctx.scale(1, 1);
 	  ctx.beginPath();
 	  ctx.arc(px, inverseY, 20, 0, Math.PI * 2);
 	  ctx.stroke();
 	  ctx.closePath();
+	};
+
+	var renderPlayer = function renderPlayer(ctx, player) {
+	  drawAimVector(ctx, player);
+	  drawPlayerSprite(ctx, player);
 	};
 
 	exports.default = (0, _ramda.curry)(renderPlayer);
@@ -35656,17 +35651,20 @@
 
 	exports.default = function () {
 	  return function (tick$) {
-	    return tick$.scan(function (state, action) {
-	      return reducer[action.type](state, action.payload);
+	    return tick$.scan(function (state, _ref) {
+	      var type = _ref.type;
+	      var payload = _ref.payload;
+	      return reducer[type](state, payload);
 	    });
 	  };
 	};
 
-	var _main = __webpack_require__(470);
+	var _main = __webpack_require__(468);
 
 	var reducer = {
 	  'UPDATE': _main.updateGame,
-	  'RELEASE': _main.launchPlayer
+	  'RELEASE': _main.launchPlayer,
+	  'TOUCH_DRAG': _main.aimLaunch
 	};
 
 	// Find a way to pass an initial game state into this
@@ -35680,7 +35678,102 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.magnitude2 = exports.dotProduct2 = exports.Vector2 = undefined;
+	exports.updateGame = exports.launchPlayer = exports.aimLaunch = undefined;
+
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+	var _ramda = __webpack_require__(466);
+
+	var _ramda2 = _interopRequireDefault(_ramda);
+
+	var _Vector = __webpack_require__(469);
+
+	var _Vector2 = _interopRequireDefault(_Vector);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	// Values for window size, need to set these in state I think
+	var maxY = window.innerHeight;
+	var maxX = window.innerWidth;
+	var outOfBoundsY = function outOfBoundsY(y) {
+	  return y <= 20 || y >= maxY - 20;
+	};
+	var outOfBoundsX = function outOfBoundsX(x) {
+	  return x <= 20 || x >= maxX - 20;
+	};
+	var clampY = _ramda2.default.clamp(20, maxY - 20);
+	var clampX = _ramda2.default.clamp(20, maxX - 20);
+	var gravity = new _Vector2.default(0, -10);
+
+	// PLAYER LOGIC, MOVE THIS
+	var updatePlayer = function updatePlayer(dt, _ref) {
+	  var position = _ref.position;
+	  var velocity = _ref.velocity;
+	  var launch = _ref.launch;
+
+	  var _position$value = _slicedToArray(position.value, 2);
+
+	  var px = _position$value[0];
+	  var py = _position$value[1];
+
+	  var _velocity$value = _slicedToArray(velocity.value, 2);
+
+	  var vx = _velocity$value[0];
+	  var vy = _velocity$value[1];
+
+	  var p = position;
+	  var v = velocity;
+
+	  if (outOfBoundsY(py)) {
+	    v = v.scaleY(-0.6);
+	  }
+	  if (outOfBoundsX(px)) {
+	    v = v.scaleX(-0.6);
+	  }
+
+	  // Update player position and velocity
+	  return {
+	    position: p.add(v.scale(dt)).mapY(clampY).mapX(clampX),
+	    velocity: v.add(gravity.scale(dt)),
+	    launch: launch
+	  };
+	};
+
+	var aimLaunch = exports.aimLaunch = function aimLaunch(state, _ref2) {
+	  var x = _ref2.x;
+	  var y = _ref2.y;
+	  var player = _ref2.player;
+
+	  var launch = new _Vector2.default(x, y).unit().scale(100);
+	  state.players[player].launch = launch;
+	  return state;
+	};
+
+	var launchPlayer = exports.launchPlayer = function launchPlayer(state, _ref3) {
+	  var player = _ref3.player;
+
+	  state.players[player].velocity = state.players[player].launch;
+	  state.players[player].launch = new _Vector2.default(0, 0);
+	  return state;
+	};
+
+	// MAIN UPDATE FOR ALL THINGS
+	var updateGame = exports.updateGame = function updateGame(state) {
+	  return {
+	    players: state.players.map(_ramda2.default.curry(updatePlayer)(0.33))
+	  };
+	};
+
+/***/ },
+/* 469 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.dotProduct2 = exports.Vector2 = undefined;
 
 	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
@@ -35821,6 +35914,32 @@
 	  return new Vector2(x * scalar, y);
 	};
 
+	/**
+	 * Magnitude of this Vector2
+	 * @return Scalar
+	 */
+	Vector2.prototype.mag = function () {
+	  var _value10 = _slicedToArray(this.value, 2);
+
+	  var x = _value10[0];
+	  var y = _value10[1];
+
+	  return Math.sqrt(x * x + y * y);
+	};
+
+	/**
+	 * Unit vector of this Vector2
+	 * @return Vector2
+	 */
+	Vector2.prototype.unit = function () {
+	  var _value11 = _slicedToArray(this.value, 2);
+
+	  var x = _value11[0];
+	  var y = _value11[1];
+
+	  return this.scale(1 / this.mag());
+	};
+
 	// Utilities
 	/**
 	 * Returns dot product of two vector2 monads
@@ -35843,24 +35962,76 @@
 	  return ax * bx + ay * by;
 	};
 
-	/**
-	 * Magnitude of given Vector2
-	 * @param {Vector2} vec
-	 * @return Scalar
-	 */
-	var magnitude2 = exports.magnitude2 = function magnitude2(vec) {
-	  var _vec$value3 = _slicedToArray(vec.value, 2);
-
-	  var x = _vec$value3[0];
-	  var y = _vec$value3[1];
-
-	  return Math.sqrt(x * 2 + y * 2);
-	};
-
 	exports.default = Vector2;
 
 /***/ },
-/* 469 */
+/* 470 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+	exports.default = function (DOM) {
+	  // CONTROLS : somehow pipe into game update logic ... need a redux state, do a merge?
+	  var canvas = DOM.select('#render');
+	  var drawEnd$ = canvas.events('touchend');
+	  var touchMove$ = _rxjs.Observable.combineLatest(canvas.events('touchstart').map(mapPageCoords), canvas.events('touchmove').map(mapPageCoords));
+
+	  var draw$ = touchMove$.map(mapDragToPlayer).map(function (payload) {
+	    return { type: 'TOUCH_DRAG', payload: payload };
+	  });
+
+	  var release$ = touchMove$.sample(drawEnd$).map(mapDragToPlayer).map(function (sling) {
+	    return {
+	      type: 'RELEASE',
+	      payload: sling
+	    };
+	  });
+
+	  // RENDER
+	  var tempInitPlayers = [(0, _player2.default)(30, 300)];
+	  tempInitPlayers[0].velocity = tempInitPlayers[0].velocity.setX(30);
+
+	  return _rxjs.Observable.interval(33, requestAnimationFrame).map(function () {
+	    return { type: 'UPDATE' };
+	  }).merge(release$, draw$).startWith({ players: tempInitPlayers }); // pass in inital state here
+	};
+
+	var _rxjs = __webpack_require__(4);
+
+	var _player = __webpack_require__(471);
+
+	var _player2 = _interopRequireDefault(_player);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var mapPageCoords = function mapPageCoords(_ref) {
+	  var touches = _ref.touches;
+	  return {
+	    x: touches[0].pageX,
+	    y: touches[0].pageY
+	  };
+	};
+
+	var mapDragToPlayer = function mapDragToPlayer(_ref2) {
+	  var _ref3 = _slicedToArray(_ref2, 2);
+
+	  var p1 = _ref3[0];
+	  var p2 = _ref3[1];
+	  return {
+	    x: p1.x - p2.x,
+	    y: p2.y - p1.y,
+	    player: 0
+	  };
+	};
+
+/***/ },
+/* 471 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -35872,18 +36043,19 @@
 	exports.default = function (x, y) {
 	  return {
 	    position: new _Vector2.default(x, y),
-	    velocity: new _Vector2.default(0, 0)
+	    velocity: new _Vector2.default(0, 0),
+	    launch: new _Vector2.default(0, 0)
 	  };
 	};
 
-	var _Vector = __webpack_require__(468);
+	var _Vector = __webpack_require__(469);
 
 	var _Vector2 = _interopRequireDefault(_Vector);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ },
-/* 470 */
+/* 472 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -35891,76 +36063,12 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.updateGame = exports.launchPlayer = undefined;
 
-	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-	var _ramda = __webpack_require__(466);
-
-	var _ramda2 = _interopRequireDefault(_ramda);
-
-	var _Vector = __webpack_require__(468);
-
-	var _Vector2 = _interopRequireDefault(_Vector);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	// Values for window size, need to set these in state I think
-	var maxY = window.innerHeight;
-	var maxX = window.innerWidth;
-	var outOfBoundsY = function outOfBoundsY(y) {
-	  return y <= 20 || y >= maxY - 20;
-	};
-	var outOfBoundsX = function outOfBoundsX(x) {
-	  return x <= 20 || x >= maxX - 20;
-	};
-	var clampY = _ramda2.default.clamp(20, maxY - 20);
-	var clampX = _ramda2.default.clamp(20, maxX - 20);
-	var gravity = new _Vector2.default(0, -10);
-
-	// PLAYER LOGIC, MOVE THIS
-	var updatePlayer = function updatePlayer(dt, _ref) {
-	  var position = _ref.position;
-	  var velocity = _ref.velocity;
-
-	  var _position$value = _slicedToArray(position.value, 2);
-
-	  var px = _position$value[0];
-	  var py = _position$value[1];
-
-	  var _velocity$value = _slicedToArray(velocity.value, 2);
-
-	  var vx = _velocity$value[0];
-	  var vy = _velocity$value[1];
-
-	  var p = position;
-	  var v = velocity;
-
-	  if (outOfBoundsY(py)) {
-	    v = v.scaleY(-0.6);
-	  }
-	  if (outOfBoundsX(px)) {
-	    v = v.scaleX(-0.6);
-	  }
-
-	  // Update player position and velocity
-	  return {
-	    position: p.add(v.scale(dt)).mapY(clampY).mapX(clampX),
-	    velocity: v.add(gravity.scale(dt))
-	  };
+	exports.default = function () {
+	  return (0, _dom.div)('.everything', [(0, _dom.h)('canvas#render')]);
 	};
 
-	var launchPlayer = exports.launchPlayer = function launchPlayer(state, payload) {
-	  state.players[payload.player].velocity = new _Vector2.default(payload.x, payload.y);
-	  return state;
-	};
-
-	// MAIN UPDATE FOR ALL THINGS
-	var updateGame = exports.updateGame = function updateGame(state) {
-	  return {
-	    players: state.players.map(_ramda2.default.curry(updatePlayer)(0.33))
-	  };
-	};
+	var _dom = __webpack_require__(346);
 
 /***/ }
 /******/ ]);

@@ -96,6 +96,24 @@ Vector2.prototype.scaleX = function ( scalar ) {
   );
 };
 
+/**
+ * Magnitude of this Vector2
+ * @return Scalar
+ */
+Vector2.prototype.mag = function () {
+  const [ x, y ] = this.value;
+  return Math.sqrt( x * x + y * y );
+};
+
+/**
+ * Unit vector of this Vector2
+ * @return Vector2
+ */
+Vector2.prototype.unit = function () {
+  const [ x, y ] = this.value;
+  return this.scale( 1 / this.mag() );
+};
+
 // Utilities
 /**
  * Returns dot product of two vector2 monads
@@ -110,15 +128,7 @@ export const dotProduct2 = ( a, b ) => {
   return ax * bx + ay * by;
 };
 
-/**
- * Magnitude of given Vector2
- * @param {Vector2} vec
- * @return Scalar
- */
-export const magnitude2 = vec => {
-  const [ x, y ] = vec.value;
-  return Math.sqrt( x * 2 + y * 2 );
-};
+
 
 
 export default Vector2;
