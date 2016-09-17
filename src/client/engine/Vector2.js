@@ -102,7 +102,16 @@ Vector2.prototype.scaleX = function ( scalar ) {
  */
 Vector2.prototype.mag = function () {
   const [ x, y ] = this.value;
-  return Math.sqrt( x * 2 + y * 2 );
+  return Math.sqrt( x * x + y * y );
+};
+
+/**
+ * Unit vector of this Vector2
+ * @return Vector2
+ */
+Vector2.prototype.unit = function () {
+  const [ x, y ] = this.value;
+  return this.scale( 1 / this.mag() );
 };
 
 // Utilities
