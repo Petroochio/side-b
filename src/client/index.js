@@ -35,27 +35,39 @@ const mapPageCoords = ({ touches }) => ({
 const main = ({ DOM, state }) => {
   const canvas = DOM.select( '#render' );
   const ctx$ = canvas.elements()
-  .map( ([ canvas ]) => canvas ? hackCanvasSize( canvas ) : null )
-  .map( canvas => canvas ? canvas.getContext( '2d' ) : null );
+    .map( ([ can ]) => can ? hackCanvasSize( can ) : null )
+    .map( can => can ? can.getContext( '2d' ) : null );
 
   // CONTROLS : somehow pipe into game update logic ... need a redux state, do a merge?
   const drawStart$ = canvas.events( 'touchstart' ).map( mapPageCoords );
   const drawMove$ = canvas.events( 'touchmove' ).map( mapPageCoords );
   const drawEnd$ = canvas.events( 'touchend' );
   const sling$ = Observable.combineLatest( drawStart$, drawMove$ );
-  const release$ = sling$
-    .sample(drawEnd$)
-    .subscribe(e => console.log( e ));
-
+  const release$ = sling$.sample( drawEnd$ )
+    .map( ([ p1, p2 ]) => ({
+        x: p1.x - p2.x,
+        y: p2.y - p1.y,
+        player: 0,
+      })
+    )
+    .map(
+      sling => ({
+        type: 'RELEASE',
+        payload: sling,
+      })
+    );
 
   // RENDER
   const tempInitPlayers = [ makePlayer( 30, 300 ) ];
   tempInitPlayers[0].velocity = tempInitPlayers[0].velocity.setX( 30 );
   const frame$ = state.withLatestFrom( ctx$ );
-  const tick$ = Observable.interval( 33, requestAnimationFrame )
+  const update$ = Observable.interval( 33, requestAnimationFrame )
+    .map(() => ({ type: 'UPDATE' }))
+
+  const tick$ = update$.merge(release$)
     .startWith({ players: tempInitPlayers }); // pass in inital state here
 
-  const s$ = sling$
+  const vdom$ = sling$
     .startWith( false )
     .map(
       e => {
@@ -69,7 +81,7 @@ const main = ({ DOM, state }) => {
     );
 
   const sinks = {
-    DOM: s$,
+    DOM: vdom$,
     render: frame$,
     state: tick$,
   }
