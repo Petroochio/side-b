@@ -11,7 +11,7 @@ const clampX = R.clamp( 20, maxX - 20 );
 const gravity = new Vector2( 0, -10 );
 
 // PLAYER LOGIC, MOVE THIS
-const updatePlayer = ( dt, { position, velocity } ) => {
+const updatePlayer = ( dt, { position, velocity, launch } ) => {
   const [ px, py ] = position.value;
   const [ vx, vy ] = velocity.value;
   let p = position;
@@ -27,18 +27,19 @@ const updatePlayer = ( dt, { position, velocity } ) => {
   // Update player position and velocity
   return {
     position: p.add( v.scale( dt ) ).mapY( clampY ).mapX( clampX ),
-    velocity: v.add( gravity.scale( dt ) )
+    velocity: v.add( gravity.scale( dt ) ),
+    launch,
   };
 };
 
 export const aimLaunch = ( state, { x, y, player } ) => {
-  // state.players[ player ].velocity = new Vector2( x, y );
-  console.log( x, y, player );
+  state.players[ player].launch = new Vector2( x, y );
   return state;
 };
 
 export const launchPlayer = ( state, { x, y, player } ) => {
   state.players[ player ].velocity = new Vector2( x, y );
+  state.players[ player ].launch = new Vector2( 0, 0 );
   return state;
 };
 

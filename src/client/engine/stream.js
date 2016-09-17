@@ -4,7 +4,7 @@ import makePlayer from './factories/player';
 
 const mapPageCoords = ({ touches }) => ({
   x: touches[0].pageX,
-  y: touches[0].pageY
+  y: touches[0].pageY,
 });
 
 const mapDragToPlayer = ([ p1, p2 ]) => ({

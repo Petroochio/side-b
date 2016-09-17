@@ -1,6 +1,7 @@
 import { curry } from 'ramda';
 
-const renderPlayer = (ctx, player) => {
+const renderPlayer = ( ctx, player ) => {
+  console.log( player.launch );
   const [ px, py ] = player.position.value;
   const inverseY = window.innerHeight - py; // invert Y so my math is easy
 
@@ -12,4 +13,4 @@ const renderPlayer = (ctx, player) => {
   ctx.closePath();
 };
 
-export default curry(renderPlayer);
+export default curry( renderPlayer );
