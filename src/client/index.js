@@ -4,14 +4,14 @@ import { h, div, makeDOMDriver } from '@cycle/dom';
 
 import makeRenderDriver from './drivers/render';
 import makeUpdateDriver from './drivers/state';
-import makePlayer from './engine/factories/Player';
 import getUpdateStream from './engine/stream';
+import renderMainView from './views';
 
 const fullScreenStyle = {
   position: 'absolute',
   top: 0,
   left: 0,
-}
+};
 
 const vw = window.innerWidth;
 const vh = window.innerHeight;
@@ -33,24 +33,14 @@ const main = ({ DOM, state }) => {
     .map( ([ c ]) => c ? hackCanvasSize( c ) : null )
     .map( c => c ? c.getContext( '2d' ) : null );
 
-  const frame$ = state.withLatestFrom( ctx$ );
-
-  const vdom$ = sling$
+  const vdom$ = DOM.select( '#render' )
+    .events( 'click' )
     .startWith( false )
-    .map(
-      e => {
-        return div(
-          '.everything',
-          [
-            h('canvas#render')
-          ]
-        );
-      }
-    );
+    .map( renderMainView );
 
   const sinks = {
     DOM: vdom$,
-    render: frame$,
+    render: state.withLatestFrom( ctx$ ),
     state: getUpdateStream( DOM ),
   }
 

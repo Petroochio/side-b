@@ -31,8 +31,8 @@ const updatePlayer = ( dt, { position, velocity } ) => {
   };
 };
 
-export const launchPlayer = ( state, payload ) => {
-  state.players[ payload.player ].velocity = new Vector2( payload.x, payload.y );
+export const launchPlayer = ( state, { x, y, player } ) => {
+  state.players[ player ].velocity = new Vector2( x, y );
   return state;
 };
 
