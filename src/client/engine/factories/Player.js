@@ -5,5 +5,8 @@ export default function ( x, y ) {
     position: new Vector2( x, y ),
     velocity: new Vector2( 0, 0 ),
     launch: new Vector2( 0, 0 ),
+    charge: 0,
+    isCharging: false,
+    isStuck: false
   };
 }

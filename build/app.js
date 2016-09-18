@@ -62,7 +62,7 @@
 
 	var _state2 = _interopRequireDefault(_state);
 
-	var _stream = __webpack_require__(470);
+	var _stream = __webpack_require__(469);
 
 	var _stream2 = _interopRequireDefault(_stream);
 
@@ -35686,7 +35686,7 @@
 
 	var _ramda2 = _interopRequireDefault(_ramda);
 
-	var _Vector = __webpack_require__(469);
+	var _Vector = __webpack_require__(471);
 
 	var _Vector2 = _interopRequireDefault(_Vector);
 
@@ -35705,14 +35705,17 @@
 	var clampCollideX = _ramda2.default.clamp(21, maxX - 21);
 	var clampY = _ramda2.default.clamp(20, maxY - 20);
 	var clampX = _ramda2.default.clamp(20, maxX - 20);
+	var clampCharge = _ramda2.default.clamp(0, 60);
 	var gravity = new _Vector2.default(0, -5);
 
 	/////// BEGIN PLAYER LOGIC, MOVE THIS
 	var updatePlayer = function updatePlayer(dt, _ref) {
 	  var position = _ref.position;
+	  var charge = _ref.charge;
 	  var velocity = _ref.velocity;
 	  var launch = _ref.launch;
 	  var isStuck = _ref.isStuck;
+	  var isCharging = _ref.isCharging;
 
 	  var _position$value = _slicedToArray(position.value, 2);
 
@@ -35739,12 +35742,23 @@
 	    v = v.add(gravity.scale(dt));
 	  }
 
+	  if (isCharging) {
+	    charge = clampCharge(charge + dt * 3);
+	  } else {
+	    charge = 0;
+	  }
+
+	  // This is wasteful
+	  var l = launch.unit().scale(charge);
+
 	  // Update player position and velocity
 	  return {
 	    position: p,
 	    velocity: v,
-	    launch: launch,
-	    isStuck: isStuck
+	    launch: l,
+	    isStuck: isStuck,
+	    isCharging: isCharging,
+	    charge: charge
 	  };
 	};
 
@@ -35753,8 +35767,10 @@
 	  var y = _ref2.y;
 	  var player = _ref2.player;
 
-	  var launch = new _Vector2.default(x, y).unit().scale(60);
+	  var launch = new _Vector2.default(x, y).unit().scale(state.players[player].charge);
+
 	  state.players[player].launch = launch;
+	  state.players[player].isCharging = true;
 	  return state;
 	};
 
@@ -35765,6 +35781,7 @@
 	  if (state.players[player].isStuck) {
 	    state.players[player].velocity = state.players[player].launch;
 	    state.players[player].launch = new _Vector2.default(0, 0);
+	    state.players[player].isCharging = false;
 	    state.players[player].isStuck = false;
 	  }
 
@@ -35781,6 +35798,99 @@
 
 /***/ },
 /* 469 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+	exports.default = function (DOM) {
+	  // CONTROLS : somehow pipe into game update logic ... need a redux state, do a merge?
+	  var canvas = DOM.select('#render');
+	  var drawEnd$ = canvas.events('touchend');
+	  var touchMove$ = _rxjs.Observable.combineLatest(canvas.events('touchstart').map(mapPageCoords), canvas.events('touchmove').map(mapPageCoords));
+
+	  var draw$ = touchMove$.map(mapDragToPlayer).map(function (payload) {
+	    return { type: 'TOUCH_DRAG', payload: payload };
+	  });
+
+	  var release$ = touchMove$.sample(drawEnd$).map(mapDragToPlayer).map(function (sling) {
+	    return {
+	      type: 'RELEASE',
+	      payload: sling
+	    };
+	  });
+
+	  // RENDER
+	  var tempInitPlayers = [(0, _player2.default)(30, 300)];
+	  tempInitPlayers[0].velocity = tempInitPlayers[0].velocity.setX(30);
+
+	  return _rxjs.Observable.interval(33, requestAnimationFrame).map(function () {
+	    return { type: 'UPDATE' };
+	  }).merge(release$, draw$).startWith({ players: tempInitPlayers }); // pass in inital state here
+	};
+
+	var _rxjs = __webpack_require__(4);
+
+	var _player = __webpack_require__(470);
+
+	var _player2 = _interopRequireDefault(_player);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var mapPageCoords = function mapPageCoords(_ref) {
+	  var touches = _ref.touches;
+	  return {
+	    x: touches[0].pageX,
+	    y: touches[0].pageY
+	  };
+	};
+
+	var mapDragToPlayer = function mapDragToPlayer(_ref2) {
+	  var _ref3 = _slicedToArray(_ref2, 2);
+
+	  var p1 = _ref3[0];
+	  var p2 = _ref3[1];
+	  return {
+	    x: p1.x - p2.x,
+	    y: p2.y - p1.y,
+	    player: 0
+	  };
+	};
+
+/***/ },
+/* 470 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	exports.default = function (x, y) {
+	  return {
+	    position: new _Vector2.default(x, y),
+	    velocity: new _Vector2.default(0, 0),
+	    launch: new _Vector2.default(0, 0),
+	    charge: 0,
+	    isCharging: false,
+	    isStuck: false
+	  };
+	};
+
+	var _Vector = __webpack_require__(471);
+
+	var _Vector2 = _interopRequireDefault(_Vector);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/***/ },
+/* 471 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -35977,96 +36087,6 @@
 	};
 
 	exports.default = Vector2;
-
-/***/ },
-/* 470 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-	exports.default = function (DOM) {
-	  // CONTROLS : somehow pipe into game update logic ... need a redux state, do a merge?
-	  var canvas = DOM.select('#render');
-	  var drawEnd$ = canvas.events('touchend');
-	  var touchMove$ = _rxjs.Observable.combineLatest(canvas.events('touchstart').map(mapPageCoords), canvas.events('touchmove').map(mapPageCoords));
-
-	  var draw$ = touchMove$.map(mapDragToPlayer).map(function (payload) {
-	    return { type: 'TOUCH_DRAG', payload: payload };
-	  });
-
-	  var release$ = touchMove$.sample(drawEnd$).map(mapDragToPlayer).map(function (sling) {
-	    return {
-	      type: 'RELEASE',
-	      payload: sling
-	    };
-	  });
-
-	  // RENDER
-	  var tempInitPlayers = [(0, _player2.default)(30, 300)];
-	  tempInitPlayers[0].velocity = tempInitPlayers[0].velocity.setX(30);
-
-	  return _rxjs.Observable.interval(33, requestAnimationFrame).map(function () {
-	    return { type: 'UPDATE' };
-	  }).merge(release$, draw$).startWith({ players: tempInitPlayers }); // pass in inital state here
-	};
-
-	var _rxjs = __webpack_require__(4);
-
-	var _player = __webpack_require__(471);
-
-	var _player2 = _interopRequireDefault(_player);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var mapPageCoords = function mapPageCoords(_ref) {
-	  var touches = _ref.touches;
-	  return {
-	    x: touches[0].pageX,
-	    y: touches[0].pageY
-	  };
-	};
-
-	var mapDragToPlayer = function mapDragToPlayer(_ref2) {
-	  var _ref3 = _slicedToArray(_ref2, 2);
-
-	  var p1 = _ref3[0];
-	  var p2 = _ref3[1];
-	  return {
-	    x: p1.x - p2.x,
-	    y: p2.y - p1.y,
-	    player: 0
-	  };
-	};
-
-/***/ },
-/* 471 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	exports.default = function (x, y) {
-	  return {
-	    position: new _Vector2.default(x, y),
-	    velocity: new _Vector2.default(0, 0),
-	    launch: new _Vector2.default(0, 0)
-	  };
-	};
-
-	var _Vector = __webpack_require__(469);
-
-	var _Vector2 = _interopRequireDefault(_Vector);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ },
 /* 472 */
