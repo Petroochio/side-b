@@ -35654,14 +35654,14 @@
 	    return tick$.scan(function (state, _ref) {
 	      var type = _ref.type;
 	      var payload = _ref.payload;
-	      return reducer[type](state, payload);
+	      return actionMap[type](state, payload);
 	    });
 	  };
 	};
 
 	var _main = __webpack_require__(468);
 
-	var reducer = {
+	var actionMap = {
 	  'UPDATE': _main.updateGame,
 	  'RELEASE': _main.launchPlayer,
 	  'TOUCH_DRAG': _main.aimLaunch
@@ -35701,15 +35701,18 @@
 	var outOfBoundsX = function outOfBoundsX(x) {
 	  return x <= 20 || x >= maxX - 20;
 	};
+	var clampCollideY = _ramda2.default.clamp(21, maxY - 21);
+	var clampCollideX = _ramda2.default.clamp(21, maxX - 21);
 	var clampY = _ramda2.default.clamp(20, maxY - 20);
 	var clampX = _ramda2.default.clamp(20, maxX - 20);
-	var gravity = new _Vector2.default(0, -10);
+	var gravity = new _Vector2.default(0, -5);
 
-	// PLAYER LOGIC, MOVE THIS
+	/////// BEGIN PLAYER LOGIC, MOVE THIS
 	var updatePlayer = function updatePlayer(dt, _ref) {
 	  var position = _ref.position;
 	  var velocity = _ref.velocity;
 	  var launch = _ref.launch;
+	  var isStuck = _ref.isStuck;
 
 	  var _position$value = _slicedToArray(position.value, 2);
 
@@ -35724,18 +35727,24 @@
 	  var p = position;
 	  var v = velocity;
 
-	  if (outOfBoundsY(py)) {
-	    v = v.scaleY(-0.6);
+	  if (outOfBoundsY(py) || outOfBoundsX(px)) {
+	    isStuck = true;
 	  }
-	  if (outOfBoundsX(px)) {
-	    v = v.scaleX(-0.6);
+
+	  if (isStuck) {
+	    p = p.mapY(clampCollideY).mapX(clampCollideX);
+	    v = new _Vector2.default(0, 0);
+	  } else {
+	    p = p.add(v.scale(dt)).mapY(clampY).mapX(clampX);
+	    v = v.add(gravity.scale(dt));
 	  }
 
 	  // Update player position and velocity
 	  return {
-	    position: p.add(v.scale(dt)).mapY(clampY).mapX(clampX),
-	    velocity: v.add(gravity.scale(dt)),
-	    launch: launch
+	    position: p,
+	    velocity: v,
+	    launch: launch,
+	    isStuck: isStuck
 	  };
 	};
 
@@ -35744,7 +35753,7 @@
 	  var y = _ref2.y;
 	  var player = _ref2.player;
 
-	  var launch = new _Vector2.default(x, y).unit().scale(100);
+	  var launch = new _Vector2.default(x, y).unit().scale(60);
 	  state.players[player].launch = launch;
 	  return state;
 	};
@@ -35752,14 +35761,20 @@
 	var launchPlayer = exports.launchPlayer = function launchPlayer(state, _ref3) {
 	  var player = _ref3.player;
 
-	  state.players[player].velocity = state.players[player].launch;
-	  state.players[player].launch = new _Vector2.default(0, 0);
+	  // Player cannot launch if they are not stuck
+	  if (state.players[player].isStuck) {
+	    state.players[player].velocity = state.players[player].launch;
+	    state.players[player].launch = new _Vector2.default(0, 0);
+	    state.players[player].isStuck = false;
+	  }
+
 	  return state;
 	};
+	/////// END PLAYER LOGIC
 
 	// MAIN UPDATE FOR ALL THINGS
 	var updateGame = exports.updateGame = function updateGame(state) {
-	  return {
+	  return { // This map could mean a loss of memory, consider mutating data
 	    players: state.players.map(_ramda2.default.curry(updatePlayer)(0.33))
 	  };
 	};
@@ -35773,7 +35788,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.dotProduct2 = exports.Vector2 = undefined;
+	exports.Vector2 = undefined;
 
 	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
@@ -35940,23 +35955,22 @@
 	  return this.scale(1 / this.mag());
 	};
 
-	// Utilities
 	/**
 	 * Returns dot product of two vector2 monads
 	 * @param {Vector2} a
 	 * @param {Vector2} b
 	 * @return Scalar
 	 */
-	var dotProduct2 = exports.dotProduct2 = function dotProduct2(a, b) {
-	  var _a$value = _slicedToArray(a.value, 2);
+	Vector2.prototype.dot = function (vec) {
+	  var _value12 = _slicedToArray(undefined.value, 2);
 
-	  var ax = _a$value[0];
-	  var ay = _a$value[1];
+	  var ax = _value12[0];
+	  var ay = _value12[1];
 
-	  var _b$value = _slicedToArray(b.value, 2);
+	  var _vec$value3 = _slicedToArray(vec.value, 2);
 
-	  var bx = _b$value[0];
-	  var by = _b$value[1];
+	  var bx = _vec$value3[0];
+	  var by = _vec$value3[1];
 
 
 	  return ax * bx + ay * by;
