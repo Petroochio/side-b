@@ -10,10 +10,11 @@ const clampCollideY = R.clamp( 21, maxY - 21 );
 const clampCollideX = R.clamp( 21, maxX - 21 );
 const clampY = R.clamp( 20, maxY - 20 );
 const clampX = R.clamp( 20, maxX - 20 );
+const clampCharge = R.clamp( 0, 60 );
 const gravity = new Vector2( 0, -5 );
 
 /////// BEGIN PLAYER LOGIC, MOVE THIS
-const updatePlayer = ( dt, { position, velocity, launch, isStuck } ) => {
+const updatePlayer = ( dt, { position, charge, velocity, launch, isStuck, isCharging } ) => {
   const [ px, py ] = position.value;
   const [ vx, vy ] = velocity.value;
   let p = position;
@@ -31,20 +32,31 @@ const updatePlayer = ( dt, { position, velocity, launch, isStuck } ) => {
     v = v.add( gravity.scale( dt ) )
   }
 
+  if ( isCharging ) {
+    charge = clampCharge( charge + dt * 3 );
+  } else {
+    charge = 0;
+  }
+
+  // This is wasteful
+  const l = launch.unit().scale( charge );
+
   // Update player position and velocity
   return {
     position: p,
     velocity: v,
-    launch,
-    isStuck
+    launch: l,
+    isStuck,
+    isCharging,
+    charge,
   };
 };
 
 export const aimLaunch = ( state, { x, y, player } ) => {
-  const launch = new Vector2( x, y )
-    .unit()
-    .scale( 60 );
+  const launch = new Vector2( x, y ).unit().scale( state.players[ player ].charge );
+
   state.players[ player ].launch = launch;
+  state.players[ player ].isCharging = true;
   return state;
 };
 
@@ -53,6 +65,7 @@ export const launchPlayer = ( state, { player } ) => {
   if ( state.players[ player ].isStuck ) {
     state.players[ player ].velocity = state.players[ player ].launch;
     state.players[ player ].launch = new Vector2( 0, 0 );
+    state.players[ player ].isCharging = false;
     state.players[ player ].isStuck = false;
   }
 
