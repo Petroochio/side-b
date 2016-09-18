@@ -10,7 +10,7 @@ const clampCollideY = R.clamp( 21, maxY - 21 );
 const clampCollideX = R.clamp( 21, maxX - 21 );
 const clampY = R.clamp( 20, maxY - 20 );
 const clampX = R.clamp( 20, maxX - 20 );
-const gravity = new Vector2( 0, -10 );
+const gravity = new Vector2( 0, -5 );
 
 /////// BEGIN PLAYER LOGIC, MOVE THIS
 const updatePlayer = ( dt, { position, velocity, launch, isStuck } ) => {
@@ -43,15 +43,19 @@ const updatePlayer = ( dt, { position, velocity, launch, isStuck } ) => {
 export const aimLaunch = ( state, { x, y, player } ) => {
   const launch = new Vector2( x, y )
     .unit()
-    .scale( 100 );
+    .scale( 60 );
   state.players[ player ].launch = launch;
   return state;
 };
 
 export const launchPlayer = ( state, { player } ) => {
-  state.players[ player ].velocity = state.players[ player ].launch;
-  state.players[ player ].launch = new Vector2( 0, 0 );
-  state.players[ player ].isStuck = false;
+  // Player cannot launch if they are not stuck
+  if ( state.players[ player ].isStuck ) {
+    state.players[ player ].velocity = state.players[ player ].launch;
+    state.players[ player ].launch = new Vector2( 0, 0 );
+    state.players[ player ].isStuck = false;
+  }
+
   return state;
 };
 /////// END PLAYER LOGIC
