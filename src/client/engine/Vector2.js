@@ -114,21 +114,17 @@ Vector2.prototype.unit = function () {
   return this.scale( 1 / this.mag() );
 };
 
-// Utilities
 /**
  * Returns dot product of two vector2 monads
  * @param {Vector2} a
  * @param {Vector2} b
  * @return Scalar
  */
-export const dotProduct2 = ( a, b ) => {
-  const [ ax, ay ] = a.value;
-  const [ bx, by ] = b.value;
+Vector2.prototype.dot = ( vec ) => {
+  const [ ax, ay ] = this.value;
+  const [ bx, by ] = vec.value;
 
   return ax * bx + ay * by;
 };
-
-
-
 
 export default Vector2;
